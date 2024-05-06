@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Unidade {
+  id           String        @id @default(uuid())
+  nome         String        @db.Text
+  ativo        Boolean
+  Responsavel  Responsavel[]
+  ItensEstoque ItemEstoque[]
+  Abrigados    Abrigados[]
+}
+
+model Responsavel {
+  id       String  @id @default(uuid())
+  name     String
+  email    String
+  password String
+  phone    String
+  ativo    Boolean
+
+  Unidade Unidade @relation(fields: [unitId], references: [id])
+  unitId  String  @unique
+}
+
+model Abrigados {
+  id          String  @id @default(uuid())
+  name        String  @db.Text
+  description String  @db.Text
+  idade       Int?
+  ativo       Boolean
+
+  Unidade   Unidade? @relation(fields: [unidadeId], references: [id])
+  unidadeId String?
+}
+
+model ItemEstoque {
+  id     String      @id @default(uuid())
+  label  ItensLabel
+  status ItensStatus
+
+  Unidade Unidade @relation(fields: [unitId], references: [id])
+  unitId  String  @unique
+
+  Chamados Chamados[]
+}
+
+model Chamados {
+  id String @id @default(uuid())
+
+  status        ChamadoStatus
+  itemEstoque   ItemEstoque?  @relation(fields: [itemEstoqueId], references: [id])
+  itemEstoqueId String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum ItensLabel {
+  MARMITA
+  COLCHAO
+  COBERTA
+  AGUA
+  BEBIDA
+}
+
+enum ItensStatus {
+  CRITICO
+  FALTANDO
+  CONTROLADO
+  SOBRANDO
+}
+
+enum ChamadoStatus {
+  AGUARDANDO
+  EM_DESLOCAMENTO
+  CONCLUIDO
+}
